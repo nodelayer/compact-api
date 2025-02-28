@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"slices"
+	"strings"
 )
 
 const (
@@ -76,7 +78,10 @@ func (c *Container) InstallPackages(packages []string) error {
 		return e
 	}
 
-	if out, e := exec.Command(c.NpmPath, "init", "-y").CombinedOutput(); e != nil {
+	cmd := exec.Command(c.NpmPath, "init", "-y")
+	prependPathEnv(cmd, path.Base(c.NpmPath))
+
+	if out, e := cmd.CombinedOutput(); e != nil {
 		if len(out) > 0 {
 			return errors.New(string(out))
 		}
@@ -86,7 +91,10 @@ func (c *Container) InstallPackages(packages []string) error {
 
 	args := append([]string{"install", "--save"}, packages...)
 
-	if out, e := exec.Command(c.NpmPath, args...).CombinedOutput(); e != nil {
+	cmd = exec.Command(c.NpmPath, args...)
+	prependPathEnv(cmd, path.Base(c.NpmPath))
+
+	if out, e := cmd.CombinedOutput(); e != nil {
 		if len(out) > 0 {
 			return errors.New(string(out))
 		}
@@ -102,7 +110,10 @@ func (c *Container) CreateArchive() (string, error) {
 		return "", e
 	}
 
-	if out, e := exec.Command("zip", "-r", "layer.zip", "nodejs").CombinedOutput(); e != nil {
+	cmd := exec.Command("zip", "-r", "layer.zip", "nodejs")
+	prependPathEnv(cmd, path.Base(c.NpmPath))
+
+	if out, e := cmd.CombinedOutput(); e != nil {
 		if len(out) > 0 {
 			return "", errors.New(string(out))
 		}
@@ -113,4 +124,21 @@ func (c *Container) CreateArchive() (string, error) {
 	layerPath := path.Join(c.WorkDir, "layer.zip")
 
 	return layerPath, nil
+}
+
+func prependPathEnv(cmd *exec.Cmd, binPath string) {
+	ups := false
+	cmd.Env = slices.Clone(os.Environ())
+
+	for i, env := range cmd.Env {
+		if strings.HasPrefix(env, "PATH=") {
+			ups = true
+			cmd.Env[i] = strings.Replace(env, "PATH=", fmt.Sprintf("PATH=%s:", binPath), 1)
+			break
+		}
+	}
+
+	if ups == false {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("PATH=%s:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin", binPath))
+	}
 }
