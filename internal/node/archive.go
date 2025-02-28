@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -20,7 +19,6 @@ func getNodejsLTSVersions() []string {
 	r, e := http.Get(NODEJS_VERSION_INDEX_PATH)
 
 	if e != nil {
-		log.Println(e)
 		return v
 	}
 
@@ -32,7 +30,6 @@ func getNodejsLTSVersions() []string {
 	}
 
 	if e = json.NewDecoder(r.Body).Decode(&l); e != nil {
-		log.Println(e)
 		return v
 	}
 

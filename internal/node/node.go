@@ -1,6 +1,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -75,13 +76,21 @@ func (c *Container) InstallPackages(packages []string) error {
 		return e
 	}
 
-	if e := exec.Command(c.NpmPath, "init", "-y").Run(); e != nil {
+	if out, e := exec.Command(c.NpmPath, "init", "-y").CombinedOutput(); e != nil {
+		if len(out) > 0 {
+			return errors.New(string(out))
+		}
+
 		return e
 	}
 
 	args := append([]string{"install", "--save"}, packages...)
 
-	if e := exec.Command(c.NpmPath, args...).Run(); e != nil {
+	if out, e := exec.Command(c.NpmPath, args...).CombinedOutput(); e != nil {
+		if len(out) > 0 {
+			return errors.New(string(out))
+		}
+
 		return e
 	}
 
@@ -93,7 +102,11 @@ func (c *Container) CreateArchive() (string, error) {
 		return "", e
 	}
 
-	if e := exec.Command("zip", "-r", "layer.zip", "nodejs").Run(); e != nil {
+	if out, e := exec.Command("zip", "-r", "layer.zip", "nodejs").CombinedOutput(); e != nil {
+		if len(out) > 0 {
+			return "", errors.New(string(out))
+		}
+
 		return "", e
 	}
 
