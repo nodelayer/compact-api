@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"regexp"
 	"strings"
 
@@ -53,6 +54,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 				fmt.Fprint(w, "Unsupported version provided, see supported versions at 'GET /versions'")
 				return
+			}
+
+			this := os.Args[0]
+			if path.IsAbs(this) == false {
+				if pwd, e := os.Getwd(); e == nil {
+					this = path.Join(pwd, this)
+				}
 			}
 
 			out, e := exec.Command(os.Args[0], "--version", vers, "--packages", pkgs).CombinedOutput()

@@ -79,7 +79,7 @@ func (c *Container) InstallPackages(packages []string) error {
 	}
 
 	cmd := exec.Command(c.NpmPath, "init", "-y")
-	prependPathEnv(cmd, path.Base(c.NpmPath))
+	prependPathEnv(cmd, path.Dir(c.NpmPath))
 
 	if out, e := cmd.CombinedOutput(); e != nil {
 		if len(out) > 0 {
@@ -92,7 +92,7 @@ func (c *Container) InstallPackages(packages []string) error {
 	args := append([]string{"install", "--save"}, packages...)
 
 	cmd = exec.Command(c.NpmPath, args...)
-	prependPathEnv(cmd, path.Base(c.NpmPath))
+	prependPathEnv(cmd, path.Dir(c.NpmPath))
 
 	if out, e := cmd.CombinedOutput(); e != nil {
 		if len(out) > 0 {
@@ -111,7 +111,7 @@ func (c *Container) CreateArchive() (string, error) {
 	}
 
 	cmd := exec.Command("zip", "-r", "layer.zip", "nodejs")
-	prependPathEnv(cmd, path.Base(c.NpmPath))
+	prependPathEnv(cmd, path.Dir(c.NpmPath))
 
 	if out, e := cmd.CombinedOutput(); e != nil {
 		if len(out) > 0 {
