@@ -63,7 +63,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			out, e := exec.Command(os.Args[0], "--version", vers, "--packages", pkgs).CombinedOutput()
+			out, e := exec.Command(this, "--version", vers, "--packages", pkgs).CombinedOutput()
 			if e != nil {
 				msg := e.Error()
 				if len(out) > 0 {
